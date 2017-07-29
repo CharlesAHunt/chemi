@@ -1,8 +1,12 @@
 package chemi.parser
 
 import FAState.dummy
-import chemi.Element.{B, Br, C, Cl}
+import cats.data.Validated.{Invalid, Valid}
+import chemi.Bond.{Aromatic, Quadruple, Single}
+import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S, Xx}
 import chemi.{Element, Isotope, Stereo, ValRes}
+
+import scala.util.Success
 
 sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
   import SmilesParser._
@@ -13,11 +17,11 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
   def parse (s: String): ValRes[A] = FAState parse (s, char, SB.empty)
 
   lazy val char: FAS = FAState[A]((a, c) ⇒ c match {
-      case EOT ⇒ (dummy[A], a).success
-      case 'C' ⇒ (chars('l'==, _ ⇒ SB addElem Cl, SB addElem C), a).success
-      case 'B' ⇒ (chars('r'==, _ ⇒ SB addElem Br, SB addElem B), a).success
-      case '[' ⇒ (accumBracket(""), a).success
-      case '%' ⇒ (ring, a).success
+      case EOT ⇒ Valid(dummy[A], a)
+      case 'C' ⇒ Valid(chars('l'==, _ ⇒ SB addElem Cl, SB addElem C), a)
+      case 'B' ⇒ Valid(chars('r'==, _ ⇒ SB addElem Br, SB addElem B), a)
+      case '[' ⇒ Valid(accumBracket(""), a)
+      case '%' ⇒ Valid(ring, a)
       case x if (x.isDigit) ⇒ next (a)(SB ring x.asDigit)
       case x   ⇒ unique get c cata (next(a), unknown(c))
     }
@@ -83,7 +87,7 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
         case x        ⇒ x.toInt
       }
 
-      SB.addAtom(Isotope(e, mass), charge, hs.some, arom, st, aClass)
+      SB.addAtom(Isotope(e, mass), charge, Some(hs), arom, st, aClass)
     }
     case _ ⇒ failFormat(s)
   }
@@ -94,11 +98,11 @@ object SmilesParser {
 
   val Default = apply[SmilesMol]
   
-  def failFormat(s: String) = ("Unknown format for atom: " + s).failNel
-  val failRing = "SMILES string ends on %".failNel
-  val failDigits = "% is not followed by two digits".failNel
-  def failDigit(c: Char) = ("Not a digit after %: " + c).failNel
-  def unknown(c: Char) = ("Unknown character in SMILES String: " + c).failNel
+  def failFormat(s: String) = Invalid("Unknown format for atom: " + s).toValidatedNel
+  val failRing = Invalid("SMILES string ends on %").toValidatedNel
+  val failDigits = Invalid("% is not followed by two digits").toValidatedNel
+  def failDigit(c: Char) = Invalid("Not a digit after %: " + c).toValidatedNel
+  def unknown(c: Char) = Invalid("Unknown character in SMILES String: " + c).toValidatedNel
 
   //regular expressions
   private val (plus, minus, pos) = ("(\\++)".r, "(\\-+)".r, "\\+(\\d)".r)

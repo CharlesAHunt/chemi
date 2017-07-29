@@ -1,6 +1,8 @@
 package chemi
 
-import org.scalacheck._, Prop._
+import org.scalacheck._
+import Prop._
+import cats.kernel.Eq
 
 object MoleculesTest extends Properties("Molecules") {
 
@@ -18,5 +20,3 @@ object MoleculesTest extends Properties("Molecules") {
     Molecules.formula, (e,m) ⇒ m == Map(Isotope(e) → 1))
     
 }
-
-// vim: set ts=2 sw=2 et:

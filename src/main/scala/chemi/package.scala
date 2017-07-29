@@ -1,4 +1,5 @@
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, Validated}
+import cats.functor.Bifunctor
 
 package object chemi {
 
@@ -6,7 +7,7 @@ package object chemi {
 
   type Molecule = LGraph[Bond,Atom]
 
-  type ValNel[+E,+A] = Validation[NonEmptyList[E],A]
+  type ValNel[+E,+A] = Validated[NonEmptyList[E],A]
 
   type ValRes[+A] = ValNel[String,A]
 
@@ -16,5 +17,5 @@ package object chemi {
    * Adjust all error messages (if any) in v by applying function f.
    */
   def mapErr[E,F,A](v: ValNel[E,A])(f: E ⇒ F): ValNel[F,A] =
-    Bifunctor[Validation].leftMap(v)(_ map f)
+    Bifunctor[Validated].leftMap(v)(_ map f)
 }

@@ -114,5 +114,3 @@ object Stereo {
 
   implicit val StereoShow = Show.show[Stereo](_.symbol)
 }
-
-// vim: set ts=2 sw=2 et:

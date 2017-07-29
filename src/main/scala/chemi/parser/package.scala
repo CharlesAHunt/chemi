@@ -4,8 +4,6 @@ import cats.Applicative
 import cats.data.State
 import cats.kernel.Monoid
 
-import collection.immutable.{IndexedSeq => IxSq}
-
 package object parser {
 
   type FARes[A] = ValRes[(FAState[A], A)]
@@ -14,7 +12,7 @@ package object parser {
 
   //a bit of help for the compiler
   implicit val ValSApplicative = Applicative[IntState].compose[ValRes]
-  implicit def ValIntStateMonoid[A:Monoid] = Monoid.liftMonoid[ValIntState,A]
+  implicit def ValIntStateMonoid[A:Monoid] = Monoid.apply[ValIntState, A]
 
   val EOT = '\u0004'
 
@@ -22,7 +20,7 @@ package object parser {
    * Transforms a SMILES string to a molecule
    */
   def smiles(s: String): ValRes[Molecule] =
-    SmilesParser.Default parse s flatMap SmilesMol.toMolecule
+    SmilesParser.Default.parse(s).map(SmilesMol.toMolecule)
 
   /**
    * Parses a single line, prepending the line number to all error messages.
@@ -35,11 +33,11 @@ package object parser {
   /**
    * Parses a list of lines, prepending line number to all error messages.
    * Cannot be accelerated by parallelization,
-   * due to the sequencial nature of the
+   * due to the sequential nature of the
    * state monad. To run the calculation starting with line number x use:
    *
    * `bulkParseSmiles(ss) exec x`
    */
-  def bulkParseSmiles(ss: IxSq[String]): ValIntState[IxSq[Molecule]] =
+  def bulkParseSmiles(ss: IndexedSeq[String]): ValIntState[IndexedSeq[Molecule]] =
     ss.reverse traverse parseSmilesLine
 }

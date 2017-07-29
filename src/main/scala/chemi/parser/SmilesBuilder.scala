@@ -1,6 +1,5 @@
 package chemi.parser
 
-import chemi._
 import chemi.Stereo.Undefined
 import chemi._
 

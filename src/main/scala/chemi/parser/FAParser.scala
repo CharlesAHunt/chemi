@@ -1,6 +1,7 @@
 package chemi.parser
 
 import cats.data.NonEmptyList
+import cats.data.Validated.Invalid
 import chemi.ValRes
 
 import scala.util.{Failure, Success}
@@ -35,11 +36,11 @@ object FAState {
    */
   def parse[A] (s: String, fas: FAState[A], a: A): ValRes[A] = {
     def fail (pos: Int)(nel: NonEmptyList[String]) =
-      nel map ("Pos. %d in %s: %s" format (pos, s, _)) fail
+      Invalid(nel map ("Pos. %d in %s: %s" format (pos, s, _)))
 
     @scala.annotation.tailrec
     def fsa (s: String, fas: FAState[A], a: A, pos: Int): ValRes[A] = s match {
-      case "" ⇒ fas next (a, EOT) fold (fail(pos), _._2.success)
+      case "" ⇒ fas next (a, EOT) fold (fail(pos), _._2)
       case cs ⇒ fas next (a, cs.head) match {
         case Failure(ss)               ⇒ fail(pos)(ss)
         case Success((newFas, newA))   ⇒ fsa(cs.tail, newFas, newA, pos + 1)

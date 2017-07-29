@@ -1,8 +1,6 @@
 package chemi
 
-import collection.immutable.{IndexedSeq ⇒ IxSq}
 import collection.parallel.ForkJoinTaskSupport
-import java.io.File
 import parser._
 
 object Main {

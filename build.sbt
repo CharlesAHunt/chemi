@@ -8,7 +8,7 @@ description := "Computational Chemistry"
 
 version := Source.fromFile("./.version").getLines().toList.head
 
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.2"
 
 publishMavenStyle := true
 
@@ -63,6 +63,7 @@ libraryDependencies ++= {
     "ch.qos.logback" % "logback-classic" % "1.1.7",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-    "com.typesafe" % "config" % "1.3.1"
+    "com.typesafe" % "config" % "1.3.1",
+    "org.scala-graph" %% "graph-core" % "1.11.5"
   )
 }

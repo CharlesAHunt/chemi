@@ -1,5 +1,7 @@
 package chemi.parser
 
+import chemi.Bond.{Aromatic, Single}
+import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S}
 import chemi._
 import chemi.{Bond, Element, Isotope, Stereo}
 

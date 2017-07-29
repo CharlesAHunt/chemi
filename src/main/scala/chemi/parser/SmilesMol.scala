@@ -1,15 +1,11 @@
 package chemi.parser
 
-import chemi._
 import chemi.parser.SmilesAtom
 import chemi._
 import chemi.Bond.{Aromatic, Single}
 
 import collection.immutable.{IndexedSeq => IxSq}
 
-/**
- * @author Stefan Höck
- */
 case class SmilesMol (
   atoms: IxSq[SmilesAtom],
   bonds: List[(Edge,Bond)],
