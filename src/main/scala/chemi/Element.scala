@@ -1,6 +1,8 @@
 package chemi
 
 import cats.kernel.Eq
+import chemi.chemf.IsotopeData
+import mouse.all._
 
 import collection.immutable.{IntMap, IndexedSeq => IxSq}
 
@@ -25,7 +27,7 @@ sealed abstract class Element (val atomicNr: Int) {
 
   val mass: Option[Double] = data flatMap (_.mass)
 
-  val name: String = data fold ("") (_.name)
+  val name: String = data cata(_.name, "")
 
   val radiusCovalent: Option[Double] = data flatMap (_.rCovalent)
 

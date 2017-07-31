@@ -2,6 +2,7 @@ package chemi.parser
 
 import chemi.parser.SmilesAtom
 import chemi._
+import mouse.all._
 import chemi.Bond.{Aromatic, Single}
 
 import collection.immutable.{IndexedSeq => IxSq}

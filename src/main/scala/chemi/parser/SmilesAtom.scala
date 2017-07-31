@@ -3,6 +3,7 @@ package chemi.parser
 import chemi.Bond.{Aromatic, Single}
 import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S}
 import chemi._
+import mouse.all._
 import chemi.{Bond, Element, Isotope, Stereo}
 
 /**
@@ -41,7 +42,7 @@ object SmilesAtom {
     bs count (Aromatic ==) match {
       case 1 ⇒ default (2 + (bs foldMap (_.valence)))
       case 0 ⇒ default (bs foldMap (_.valence))
-      case _ ⇒ bs.toList sortBy (_.valence) match {
+      case _ ⇒ bs sortBy (_.valence) match {
         case Aromatic::Aromatic::Aromatic::Nil ⇒
           if (e == C || e == N || e == P || e == B) 0.success else fail
         case Aromatic::Aromatic::Single::Nil   ⇒ 

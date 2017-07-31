@@ -3,6 +3,7 @@ package chemi
 import cats.Show
 import cats.kernel.Eq
 import chemi.chemf.IsotopeData
+import mouse.all._
 
 sealed trait Isotope {
   def element: Element

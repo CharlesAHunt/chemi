@@ -12,7 +12,7 @@ package object parser {
 
   //a bit of help for the compiler
   implicit val ValSApplicative = Applicative[IntState].compose[ValRes]
-  implicit def ValIntStateMonoid[A:Monoid] = Monoid.apply[ValIntState, A]
+  implicit def ValIntStateMonoid[A:Monoid] = Monoid.apply[ValIntState[A]]
 
   val EOT = '\u0004'
 
@@ -20,7 +20,7 @@ package object parser {
    * Transforms a SMILES string to a molecule
    */
   def smiles(s: String): ValRes[Molecule] =
-    SmilesParser.Default.parse(s).map(SmilesMol.toMolecule)
+    SmilesParser.Default.parse(s).flatMap(SmilesMol.toMolecule)
 
   /**
    * Parses a single line, prepending the line number to all error messages.

@@ -9,7 +9,7 @@ package object chemi {
 
   type ValNel[+E,+A] = Validated[NonEmptyList[E],A]
 
-  type ValRes[+A] = ValNel[String,A]
+  type ValRes[+A] = ValNel[String, A]
 
   type DisRes[+A] = Either[String, A]
 

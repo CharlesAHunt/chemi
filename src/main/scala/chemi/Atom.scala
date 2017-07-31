@@ -24,7 +24,7 @@ case class Atom (
     isotope.exactMass |@| H.exactMass map (_ + hydrogens * _)
 
   def formula: Formula =
-    Map(isotope → 1) ++ ((hydrogens ≠ 0) ? Map(Isotope(H) → hydrogens) | Map.empty)
+    Map(isotope → 1) ++ (if(hydrogens != 0) Map(Isotope(H) → hydrogens) else Map.empty)
 
   def mass: Option[Double] = 
     isotope.mass |@| H.mass map (_ + hydrogens * _)

@@ -4,7 +4,8 @@ import FAState.dummy
 import cats.data.Validated.{Invalid, Valid}
 import chemi.Bond.{Aromatic, Quadruple, Single}
 import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S, Xx}
-import chemi.{Element, Isotope, Stereo, ValRes}
+import chemi._
+import mouse.all._
 
 import scala.util.Success
 
@@ -58,8 +59,8 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
     'N' → SB.addElem (N),        'n' → SB.addAromElem (N),
     'S' → SB.addElem (S),        's' → SB.addAromElem (S),
     'I' → SB.addElem (I),        'F' → SB.addElem (F),
-    '-' → SB.setBond (Single),   '=' → SB.setBond (Double),
-    '#' → SB.setBond (Triple),   '$' → SB.setBond (Quadruple),
+    '-' → SB.setBond (Bond.Single),   '=' → SB.setBond (Bond.Double),
+    '#' → SB.setBond (Bond.Triple),   '$' → SB.setBond (Quadruple),
     ':' → SB.setBond (Aromatic), '(' → SB.openBranch,
     ')' → SB.closeBranch,        '/' → SB.setDbStereo('/'),
     '\\'→ SB.setDbStereo('\\'),  '.' → SB.clear,
