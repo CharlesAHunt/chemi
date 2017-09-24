@@ -8,8 +8,6 @@ import collection.immutable.{IntMap, IndexedSeq => IxSq}
 
 sealed abstract class Element (val atomicNr: Int) {
 
-  private val data = EData.dataMap get atomicNr
-
   val electroNegativity: Option[Double] = data flatMap (_.en)
 
   val electronAffinity: Option[Double] = data flatMap (_.ea)
@@ -190,7 +188,7 @@ object Element {
   implicit val ElementEqual: Eq[Element] = Eq.allEqual
 }
 
-private[chemi] case class EData(
+private[chemi] case class ElementData(
   id: Int,
   name: String = "",
   mass: Option[Double] = None,
@@ -201,49 +199,3 @@ private[chemi] case class EData(
   rCovalent: Option[Double] = None,
   rVdw: Option[Double] = None
 )
-
-private[chemi] object EData {
-
-  val dataMap: Map[Int,EData] = {
-    def single (ns: Seq[Node]): EData = {
-    
-      def scalarToEndo (ns: Seq[Node]): Endo[EData] =
-        ns \ "@dictRef" text match {
-          case "bo:atomicNumber" ⇒
-            Endo(_ copy (id = ns.text.toInt))
-          case "bo:mass" ⇒
-            Endo(_ copy (mass = ns.text.toDouble.some))
-          case "bo:exactMass" ⇒
-            Endo(_ copy (exactMass = ns.text.toDouble.some))
-          case "bo:ionization" ⇒
-            Endo(_ copy (ionization = ns.text.toDouble.some))
-          case "bo:electronAffinity" ⇒
-            Endo(_ copy (ea = ns.text.toDouble.some))
-          case "bo:electronegativityPauling" ⇒
-            Endo(_ copy (en = ns.text.toDouble.some))
-          case "bo:radiusCovalent" ⇒
-            Endo(_ copy (rCovalent = ns.text.toDouble.some))
-          case "bo:radiusVDW" ⇒
-            Endo(_ copy (rVdw = ns.text.toDouble.some))
-          case _                 ⇒ Endo(identity)
-        }
-
-      def lblToEndo (ns: Seq[Node]): Endo[EData] =
-        ns \ "@dictRef" text match {
-          case "bo:name" ⇒ Endo(_ copy (name = ns \ "@value" text))
-          case _         ⇒ Endo(identity)
-        }
-
-      def scalars = (ns \ "scalar").toList foldMap scalarToEndo
-      def lbls = (ns \ "label").toList foldMap lblToEndo
-
-      scalars ⊹ lbls apply EData(0)
-    }
-
-    def elems = XML.load(getClass.getResourceAsStream("elements.xml"))
-
-    def toPair (e: EData) = (e.id, e)
-
-    (elems \ "atom") map (n ⇒ toPair(single(n))) toMap
-  }
-}

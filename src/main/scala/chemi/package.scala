@@ -1,11 +1,13 @@
 import cats.data.{NonEmptyList, Validated}
 import cats.functor.Bifunctor
 
+import scalax.collection.Graph
+
 package object chemi {
 
   type Formula = Map[Isotope,Int]
 
-  type Molecule = LGraph[Bond,Atom]
+  type Molecule = Graph[Atom, Bond]
 
   type ValNel[+E,+A] = Validated[NonEmptyList[E],A]
 

@@ -8,7 +8,7 @@ description := "Computational Chemistry"
 
 version := Source.fromFile("./.version").getLines().toList.head
 
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.3"
 
 publishMavenStyle := true
 
@@ -64,7 +64,7 @@ libraryDependencies ++= {
     "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",
     "com.typesafe" % "config" % "1.3.1",
-    "org.scala-graph" %% "graph-core" % "1.11.5",
+    "org.scala-graph" %% "graph-core" % "1.12.0",
     "com.github.benhutchison" %% "mouse" % "0.9"
   )
 }

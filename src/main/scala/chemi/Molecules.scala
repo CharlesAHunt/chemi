@@ -1,7 +1,5 @@
 package chemi
 
-import Element.H
-
 trait Molecules {
 
   /**

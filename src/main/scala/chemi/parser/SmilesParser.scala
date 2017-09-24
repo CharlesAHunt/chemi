@@ -2,7 +2,6 @@ package chemi.parser
 
 import FAState.dummy
 import cats.data.Validated.{Invalid, Valid}
-import chemi.Bond.{Aromatic, Quadruple, Single}
 import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S, Xx}
 import chemi._
 import mouse.all._
