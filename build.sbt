@@ -6,7 +6,7 @@ organization := "com.cornfluence"
 
 description := "Computational Chemistry"
 
-version := Source.fromFile("./.version").getLines().toList.head
+version := "0.1.0"
 
 scalaVersion := "2.12.3"
 
