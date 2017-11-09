@@ -18,8 +18,8 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
 
   lazy val char: FAS = FAState[A]((a, c) ⇒ c match {
       case EOT ⇒ Valid(dummy[A], a)
-      case 'C' ⇒ Valid(chars('l'==, _ ⇒ SB addElem Cl, SB addElem C), a)
-      case 'B' ⇒ Valid(chars('r'==, _ ⇒ SB addElem Br, SB addElem B), a)
+      case 'C' ⇒ Valid(chars('l'.==, _ ⇒ SB addElem Cl, SB addElem C), a)
+      case 'B' ⇒ Valid(chars('r'.==, _ ⇒ SB addElem Br, SB addElem B), a)
       case '[' ⇒ Valid(accumBracket(""), a)
       case '%' ⇒ Valid(ring, a)
       case x if (x.isDigit) ⇒ next (a)(SB ring x.asDigit)

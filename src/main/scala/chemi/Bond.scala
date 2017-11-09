@@ -19,5 +19,5 @@ object Bond {
 
   implicit val BondEqual = Eq.allEqual[Bond]
 
-  implicit val BondShow = Show.show[Bond](_.weight.toString)
+  implicit val BondShow = Show.show[Bond](_.symbol)
 }

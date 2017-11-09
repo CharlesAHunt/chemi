@@ -1,18 +1,19 @@
 package chemi
 
 import cats.kernel.Eq
-import chemi.chemf.IsotopeData
 import mouse.all._
 
 import collection.immutable.{IntMap, IndexedSeq => IxSq}
 
 sealed abstract class Element (val atomicNr: Int) {
 
-  val electroNegativity: Option[Double] = data flatMap (_.en)
+  private val data: Option[ElementData] = ElementData.dataMap get atomicNr
 
-  val electronAffinity: Option[Double] = data flatMap (_.ea)
+  val electroNegativity: Option[Double] = data flatMap(_.electroNegativity)
 
-  val exactMass: Option[Double] = data flatMap (_.exactMass)
+  val electronAffinity: Option[Double] = data.flatMap(_.electronAffinity)
+
+  val exactMass: Option[Double] = data.flatMap(_.exactMass)
 
   lazy val isotopes: IxSq[Isotope] =
     (IsotopeData isotopes this).keySet.toIndexedSeq.sorted map (Isotope(this, _))
@@ -173,7 +174,7 @@ object Element {
 
   def fromNumber (i: Int) = numberMap(i)
 
-  def fromSymbol (s: String) = symbolMap get s.toLowerCase
+  def fromSymbol (s: String): Option[Element] = symbolMap get s.toLowerCase
 
   def fromSymbolV (s: String): ValRes[Element] = {
     def msg = "Unknown element: " + s
@@ -194,8 +195,15 @@ private[chemi] case class ElementData(
   mass: Option[Double] = None,
   exactMass: Option[Double] = None,
   ionization: Option[Double] = None,
-  ea: Option[Double] = None,
-  en: Option[Double] = None,
+  electronAffinity: Option[Double] = None,
+  electroNegativity: Option[Double] = None,
   rCovalent: Option[Double] = None,
   rVdw: Option[Double] = None
 )
+
+private[chemi] object ElementData {
+
+  val dataMap: Map[Int,ElementData] = {
+    ???
+  }
+}

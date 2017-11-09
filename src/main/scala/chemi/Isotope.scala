@@ -2,7 +2,6 @@ package chemi
 
 import cats.Show
 import cats.kernel.Eq
-import chemi.chemf.IsotopeData
 import mouse.all._
 
 sealed trait Isotope {
@@ -10,7 +9,7 @@ sealed trait Isotope {
 
   def massNr: Option[Int]
 
-  lazy val iData = massNr flatMap (IsotopeData get (element, _))
+  lazy val iData: Option[IsotopeData] = massNr flatMap (IsotopeData get (element, _))
 
   lazy val mass = iData flatMap (_.exactMass) orElse element.mass
 

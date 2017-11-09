@@ -17,7 +17,7 @@ case class SmilesAtom (
   stereo: Stereo,
   atomClass: Int
 ) {
-  def element = isotope.element
+  def element: Element = isotope.element
 }
 
 object SmilesAtom {
@@ -37,9 +37,9 @@ object SmilesAtom {
     def fail = msg.failNel[Int]
 
     def default (v: Int): ValRes[Int] =
-      valences get e flatMap (_ find (v<=)) cata (_ - v success, fail)
+      valences get e flatMap (_ find (_ <= v)) cata (_ - v success, fail)
 
-    bs count (Aromatic ==) match {
+    bs count (_ == Aromatic) match {
       case 1 ⇒ default (2 + (bs foldMap (_.valence)))
       case 0 ⇒ default (bs foldMap (_.valence))
       case _ ⇒ bs sortBy (_.valence) match {
