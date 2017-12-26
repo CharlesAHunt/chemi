@@ -1,9 +1,10 @@
 package chemi.parser
 
-import chemi.parser.SmilesAtom
+import cats.data.{NonEmptyList, Validated}
 import chemi._
 import mouse.all._
 import chemi.Bond.{Aromatic, Single}
+import com.sun.javafx.geom.Edge
 
 import collection.immutable.{IndexedSeq => IxSq}
 
@@ -31,7 +32,7 @@ case class SmilesMol (
 
   def addBond (x: AtomInfo, y: AtomInfo, b: Option[Bond] = None) = {
     def bnd = bond orElse b match {
-      case None if (x._2 && y._2) ⇒ Aromatic
+      case None if x._2 && y._2   ⇒ Aromatic
       case None                   ⇒ Single
       case Some(a)                ⇒ a
     }
@@ -40,8 +41,8 @@ case class SmilesMol (
   }
 
   def closeBranch: ValRes[SmilesMol] = stack match {
-    case a::as ⇒ copy(stack = as).success
-    case _ ⇒ "No branch opened".failNel
+    case a::as ⇒ Validated.Valid(copy(stack = as))
+    case _ ⇒ Validated.invalid(NonEmptyList.one("No branch opened"))
   }
 
   def modRings (f: Rings ⇒ Rings) = copy (rings = f(rings))
@@ -80,7 +81,7 @@ object SmilesMol {
       def hs = SmilesAtom implicitHydrogens (graph edgesTo i, a.element)
       def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
 
-      a.hydrogens cata (toAtom(_).success, hs map toAtom)
+      a.hydrogens cata (Validated.Valid(toAtom(_)), hs map toAtom)
     }
     
     (graph mapI toAtom).sequence[ValRes,Atom]
@@ -94,17 +95,17 @@ object SmilesMol {
    */
   implicit val SmilesMolBuilder = new SmilesBuilder[SmilesMol] {
     val empty = SmilesMol(IxSq.empty, Nil)
-    val clear: STrans = m ⇒ SmilesMol(m.atoms, m.bonds, rings = m.rings).success
+    val clear: STrans = m ⇒ Validated.Valid(SmilesMol(m.atoms, m.bonds, rings = m.rings))
     val closeBranch: STrans = _.closeBranch
-    val openBranch: STrans = _.openBranch.success
-    def setBond (b: Bond): STrans = _.copy(bond = Some(b)).success
-    def setDbStereo (c: Char): STrans = _.copy(dbStereo = c.some).success
+    val openBranch: STrans = _.openBranch
+    def setBond (b: Bond): STrans = mol => Validated.Valid(mol.copy(bond = Some(b)))
+    def setDbStereo (c: Char): STrans = mol => Validated.Valid(mol.copy(dbStereo = Some(c)))
 
     def addAtom (
       i: Isotope, c: Int, h: Option[Int], a: Boolean, s: Stereo, ac: Int
     ) = m ⇒ 
       m.addAtom(SmilesAtom(i, c, h, s, ac), a) |>
-      (n ⇒ m.stack.headOption cata (n addBond (_, (m.order, a)), n.success))
+      (n ⇒ m.stack.headOption cata (n addBond (_, (m.order, a)), Validated.Valid(n)))
 
     def ring (i: Int) = m ⇒ (m.rings get i, m.stack.headOption) match {
       case (Some((x, bo)), Some(y)) ⇒ m modRings (_ - i) addBond (x, y, bo)

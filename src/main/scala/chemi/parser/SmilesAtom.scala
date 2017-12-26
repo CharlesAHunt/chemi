@@ -1,10 +1,14 @@
 package chemi.parser
 
+import cats.data.Validated
 import chemi.Bond.{Aromatic, Single}
 import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S}
 import chemi._
 import mouse.all._
 import chemi.{Bond, Element, Isotope, Stereo}
+import cats.implicits._
+import cats.syntax._
+
 
 /**
  * A data type representing information about atoms available
@@ -32,26 +36,26 @@ object SmilesAtom {
    * less strict that defined by the OpenSMILES standard:
    * 1, 3, 5, 7 for Cl, Br, and I (instead of just 1)
    */
-  def implicitHydrogens (bs: List[Bond], e: Element): ValRes[Int] = {
-    def msg = "Invalid bond set for element %s: %s" format (e, bs mkString ",")
-    def fail = msg.failNel[Int]
+  def implicitHydrogens (bonds: List[Bond], e: Element): ValRes[Int] = { //Validated[NonEmptyList[E],Int]
+    def msg = "Invalid bond set for element %s: %s" format (e, bonds mkString ",")
+    def fail = Validated.Invalid[String](msg)
 
     def default (v: Int): ValRes[Int] =
-      valences get e flatMap (_ find (_ <= v)) cata (_ - v success, fail)
+      valences get e flatMap (_ find (_ <= v)) cata (_ - Validated.valid(v), fail)
 
-    bs count (_ == Aromatic) match {
-      case 1 ⇒ default (2 + (bs foldMap (_.valence)))
-      case 0 ⇒ default (bs foldMap (_.valence))
-      case _ ⇒ bs sortBy (_.valence) match {
+    bonds count (_ == Aromatic) match {
+      case 1 ⇒ default (2 + (bonds foldMap (_.valence)))
+      case 0 ⇒ default (bonds foldMap (_.valence))
+      case _ ⇒ bonds sortBy (_.valence) match {
         case Aromatic::Aromatic::Aromatic::Nil ⇒
-          if (e == C || e == N || e == P || e == B) 0.success else fail
+          if (e == C || e == N || e == P || e == B) Validated.valid(0) else fail
         case Aromatic::Aromatic::Single::Nil   ⇒ 
-          if (e == C || e == N || e == P || e == B) 0.success else fail
-        case Aromatic::Aromatic::Double::Nil   ⇒ 
-          if (e == C || e == S) 0.success else fail
+          if (e == C || e == N || e == P || e == B) Validated.valid(0) else fail
+        case Aromatic::Aromatic::Bond.Double::Nil   ⇒
+          if (e == C || e == S) Validated.valid(0) else fail
         case Aromatic::Aromatic::Nil           ⇒
-          if (e == C || e == B) 1.success
-          else if (e == N || e == P || e == O || e == S) 0.success
+          if (e == C || e == B) Validated.valid(1)
+          else if (e == N || e == P || e == O || e == S) Validated.valid(0)
           else fail
         //other combos with 2 or more aromatic bonds don't make sense
         case _ ⇒ fail

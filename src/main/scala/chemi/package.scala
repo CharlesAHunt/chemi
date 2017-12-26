@@ -1,5 +1,5 @@
+import cats.Bifunctor
 import cats.data.{NonEmptyList, Validated}
-import cats.functor.Bifunctor
 
 import scalax.collection.Graph
 import scalax.collection.GraphEdge.UnDiEdge

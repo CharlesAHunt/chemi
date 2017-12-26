@@ -2,6 +2,7 @@ package chemi.parser
 
 import FAState.dummy
 import cats.data.Validated.{Invalid, Valid}
+import chemi.Bond.{Aromatic, Quadruple}
 import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S, Xx}
 import chemi._
 import mouse.all._
@@ -27,12 +28,12 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
     }
   )
 
-  private def next (a: A)(s: STrans) = s(a) ∘ ((char, _))
+  private def next (a: A)(s: STrans) = s(a) map (char, _)
 
   private def chars(p: Char ⇒ Boolean, y: Char ⇒ STrans, n: STrans) =
     FAState[A]((a,c) ⇒ c match {
-        case EOT        ⇒ n(a) ∘ ((dummy[A], _))
-        case x if(p(x)) ⇒ y(x)(a) ∘ ((char, _))
+        case EOT        ⇒ n(a) map (dummy[A], _)
+        case x if p(x) ⇒ y(x)(a) map (char, _)
         case x          ⇒ n(a) flatMap (char next (_, x))
       }
     )
@@ -46,7 +47,7 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
 
   private def accumBracket (s: String): FAS = FAState((a,c) ⇒ c match {
       case EOT ⇒ failFormat(s)
-      case ']' ⇒ parseBracket(s) flatMap (_(a) ∘ ((char, _)))
+      case ']' ⇒ parseBracket(s) flatMap (_(a) ∘ (char, _))
       case c   ⇒ Success(accumBracket(s + c), a)
     }
   )

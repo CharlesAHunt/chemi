@@ -20,7 +20,7 @@ package object parser {
    * Transforms a SMILES string to a molecule
    */
   def smiles(s: String): ValRes[Molecule] =
-    SmilesParser.Default.parse(s).flatMap(SmilesMol.toMolecule)
+    SmilesParser.Default.parse(s).map(c => SmilesMol.toMolecule(c))
 
   /**
    * Parses a single line, prepending the line number to all error messages.

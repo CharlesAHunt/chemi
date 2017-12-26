@@ -1,9 +1,12 @@
 package chemi
 
+import cats.data.NonEmptyList
+import cats.implicits._
+import cats.syntax._
 import cats.kernel.Eq
 import mouse.all._
 
-import collection.immutable.{IntMap, IndexedSeq => IxSq}
+import collection.immutable.IndexedSeq
 
 sealed abstract class Element (val atomicNr: Int) {
 
@@ -15,10 +18,10 @@ sealed abstract class Element (val atomicNr: Int) {
 
   val exactMass: Option[Double] = data.flatMap(_.exactMass)
 
-  lazy val isotopes: IxSq[Isotope] =
+  lazy val isotopes: IndexedSeq[Isotope] =
     (IsotopeData isotopes this).keySet.toIndexedSeq.sorted map (Isotope(this, _))
 
-  lazy val isotopeDist: IxSq[(Isotope,Double)] = for {
+  lazy val isotopeDist: IndexedSeq[(Isotope,Double)] = for {
     i ← isotopes
     d ← i.iData
     a ← d.abundance
@@ -178,10 +181,10 @@ object Element {
 
   def fromSymbolV (s: String): ValRes[Element] = {
     def msg = "Unknown element: " + s
-    fromSymbol(s) toSuccess msg.wrapNel
+    fromSymbol(s).toValid(NonEmptyList.one(msg))
   }
 
-  private[this] val numberMap = values.toArray
+  private val numberMap = values.toArray
 
   val symbolMap: Map[String,Element] =
     values map (e ⇒ (e.symbol.toLowerCase, e)) toMap

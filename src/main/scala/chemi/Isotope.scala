@@ -5,6 +5,7 @@ import cats.kernel.Eq
 import mouse.all._
 
 sealed trait Isotope {
+
   def element: Element
 
   def massNr: Option[Int]

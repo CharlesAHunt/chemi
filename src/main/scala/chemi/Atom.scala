@@ -1,6 +1,7 @@
 package chemi
 
 import Element.H
+import cats.implicits._
 import cats._, cats.instances.all._, cats.syntax.cartesian._
 
 /**
@@ -21,13 +22,13 @@ case class Atom (
   def element: Element = isotope.element
 
   def exactMass: Option[Double] =
-    isotope.exactMass |@| H.exactMass map (_ + hydrogens * _)
+    (isotope.exactMass, H.exactMass) mapN (_ + hydrogens * _)
 
   def formula: Formula =
     Map(isotope → 1) ++ (if(hydrogens != 0) Map(Isotope(H) → hydrogens) else Map.empty)
 
-  def mass: Option[Double] = 
-    isotope.mass |@| H.mass map (_ + hydrogens * _)
+  def mass: Option[Double] =
+    (isotope.mass, H.mass) mapN (_ + hydrogens * _)
 
   override def toString: String = {
     def formatCharge = charge match {

@@ -1,7 +1,9 @@
 package chemi
 
 import cats.Show
+import cats.data.NonEmptyList
 import cats.kernel.Eq
+import cats.implicits._
 
 /**
  * Stereo descriptors in SMILES strings
@@ -102,7 +104,7 @@ object Stereo {
   def fromSymbol (s: String): Option[Stereo] = map get s
 
   def fromSymbolV (s: String): ValRes[Stereo] =
-    fromSymbol(s) toSuccess ("Unknown stereo type: " + s).wrapNel
+    fromSymbol(s) toValid NonEmptyList.one("Unknown stereo type: " + s)
 
   val pattern = """(@|@@|@1|@2|@AL1|@AL2|@TH1|@TH2|@SP1|@SP2|@SP3|""" +
                 """@TB[1-9]|@TB1\d|@TB20|""" +
