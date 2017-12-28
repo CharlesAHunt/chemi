@@ -4,13 +4,14 @@ import cats.data.{NonEmptyList, Validated}
 import chemi._
 import mouse.all._
 import chemi.Bond.{Aromatic, Single}
-import com.sun.javafx.geom.Edge
 
 import collection.immutable.{IndexedSeq => IxSq}
+import scalax.collection.GraphEdge.UnDiEdge
+import scalax.collection.immutable.Graph
 
 case class SmilesMol (
   atoms: IxSq[SmilesAtom],
-  bonds: List[(Edge,Bond)],
+  bonds: List[UnDiEdge[Bond]],
   stack: List[SmilesMol.AtomInfo] = Nil,
   keep: Boolean = false,
   bond: Option[Bond] = None,
@@ -37,7 +38,7 @@ case class SmilesMol (
       case Some(a)                ⇒ a
     }
 
-    copy (bonds = (Edge(x._1, y._1), bnd) :: bonds).noBond.success
+    copy (bonds = (UnDiEdge(x._1, y._1), bnd) :: bonds).noBond.success
   }
 
   def closeBranch: ValRes[SmilesMol] = stack match {
@@ -66,9 +67,9 @@ object SmilesMol {
   type RingInfo = (AtomInfo, Option[Bond])
 
   /**
-   * Maping from ring index to ring info
+   * Mapping from ring index to ring info
    */
-  type Rings = Map[Int,RingInfo]
+  type Rings = Map[Int, RingInfo]
 
   /**
    * Transforms a SmilesMol to a Molecule by calculating
@@ -76,7 +77,7 @@ object SmilesMol {
    * stereocenters are ignored by this function.
    */
   def toMolecule (m: SmilesMol): ValRes[Molecule] = {
-    val graph = LGraph(m.atoms, m.bonds: _*)
+    val graph = Graph(m.atoms, m.bonds: _*)
     def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = {
       def hs = SmilesAtom implicitHydrogens (graph edgesTo i, a.element)
       def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
@@ -109,8 +110,8 @@ object SmilesMol {
 
     def ring (i: Int) = m ⇒ (m.rings get i, m.stack.headOption) match {
       case (Some((x, bo)), Some(y)) ⇒ m modRings (_ - i) addBond (x, y, bo)
-      case (None, Some(y)) ⇒ m.modRings (_ + i → (y, m.bond)).noBond.success
-      case (_, None) ⇒ "Atom stack empty when opening ring.".failNel
+      case (None, Some(y)) ⇒ m.modRings (a => a + i -> (y, m.bond)).noBond.success
+      case (_, None) ⇒ Validated.Invalid(NonEmptyList.one("Atom stack empty when opening ring."))
     }
   }
 }

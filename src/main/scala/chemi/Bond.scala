@@ -2,22 +2,23 @@ package chemi
 
 import cats.Show
 import cats.kernel.Eq
+import enumeratum.values._
 
 import scalax.collection.edge.WUnDiEdge
 
-sealed case class Bond(symbol: String, valence: Int)
+sealed abstract class Bond(val valence: Int, val symbol: String) extends IntEnumEntry
 
-object Bond {
+case object Bond extends IntEnum[Bond] {
 
   type ChemBond = WUnDiEdge[Int]
 
-  case object Single extends Bond("-", 1)
-  case object Double extends Bond("=", 2)
-  case object Triple extends Bond("#", 3)
-  case object Quadruple extends Bond("$", 4)
-  case object Aromatic extends Bond(":", 0)
+  case object Single extends Bond(1, "-")
+  case object Double extends Bond(2, "=")
+  case object Triple extends Bond(3, "#")
+  case object Quadruple extends Bond(4, "$")
+  case object Aromatic extends Bond(0, ":")
 
-  val values = List[Bond] (Single, Double, Triple, Quadruple, Aromatic)
+  //val values = findValues
 
   implicit val BondEqual = Eq.allEqual[Bond]
 

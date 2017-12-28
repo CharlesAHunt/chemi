@@ -46,5 +46,5 @@ object Isotope {
     extends Isotope
 
   //Flyweight isotopes for all elements
-  private[this] val elems = Element.values map (Impl(_, None)) toArray
+  private val elems = Element.values map (Impl(_, None)) toArray
 }

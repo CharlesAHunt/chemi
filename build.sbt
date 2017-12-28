@@ -60,6 +60,7 @@ shellPrompt := { state => scala.Console.YELLOW + "[" + scala.Console.CYAN + Proj
 libraryDependencies ++= {
   Seq(
     "org.typelevel" %% "cats-core" % "1.0.0-RC2",
+    "com.beachape" % "enumeratum_2.11" % "1.5.12",
     "ch.qos.logback" % "logback-classic" % "1.1.7",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",

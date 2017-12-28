@@ -1,6 +1,6 @@
 package chemi.parser
 
-import cats.data.Validated
+import cats.data.{NonEmptyList, Validated}
 import chemi.Bond.{Aromatic, Single}
 import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S}
 import chemi._
@@ -36,12 +36,12 @@ object SmilesAtom {
    * less strict that defined by the OpenSMILES standard:
    * 1, 3, 5, 7 for Cl, Br, and I (instead of just 1)
    */
-  def implicitHydrogens (bonds: List[Bond], e: Element): ValRes[Int] = { //Validated[NonEmptyList[E],Int]
+  def implicitHydrogens (bonds: List[Bond], e: Element): ValRes[Int] = {
     def msg = "Invalid bond set for element %s: %s" format (e, bonds mkString ",")
-    def fail = Validated.Invalid[String](msg)
+    def fail = Validated.Invalid(NonEmptyList.one(msg))
 
     def default (v: Int): ValRes[Int] =
-      valences get e flatMap (_ find (_ <= v)) cata (_ - Validated.valid(v), fail)
+      valences get e flatMap (_ find (_ <= v)) cata (n => Validated.valid(n - v), fail)
 
     bonds count (_ == Aromatic) match {
       case 1 ⇒ default (2 + (bonds foldMap (_.valence)))
@@ -49,7 +49,7 @@ object SmilesAtom {
       case _ ⇒ bonds sortBy (_.valence) match {
         case Aromatic::Aromatic::Aromatic::Nil ⇒
           if (e == C || e == N || e == P || e == B) Validated.valid(0) else fail
-        case Aromatic::Aromatic::Single::Nil   ⇒ 
+        case Aromatic::Aromatic::Single::Nil   ⇒
           if (e == C || e == N || e == P || e == B) Validated.valid(0) else fail
         case Aromatic::Aromatic::Bond.Double::Nil   ⇒
           if (e == C || e == S) Validated.valid(0) else fail

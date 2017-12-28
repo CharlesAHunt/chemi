@@ -1,8 +1,8 @@
 package chemi
 
 import Element.H
+import cats.{Eq, Show}
 import cats.implicits._
-import cats._, cats.instances.all._, cats.syntax.cartesian._
 
 /**
   *

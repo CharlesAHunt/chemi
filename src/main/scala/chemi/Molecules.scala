@@ -1,8 +1,11 @@
 package chemi
 
 import cats.implicits._
-import scalax.collection.Graph
-import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
+import com.sun.org.apache.xpath.internal.NodeSet
+
+import scalax.collection.{AnySet, Graph}
+import scalax.collection.GraphPredef._
+import scalax.collection.GraphEdge._
 
 trait Molecules {
 

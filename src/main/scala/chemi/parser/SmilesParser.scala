@@ -1,6 +1,7 @@
 package chemi.parser
 
 import FAState.dummy
+import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 import chemi.Bond.{Aromatic, Quadruple}
 import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S, Xx}
@@ -23,31 +24,31 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
       case 'B' ⇒ Valid(chars('r'.==, _ ⇒ SB addElem Br, SB addElem B), a)
       case '[' ⇒ Valid(accumBracket(""), a)
       case '%' ⇒ Valid(ring, a)
-      case x if (x.isDigit) ⇒ next (a)(SB ring x.asDigit)
+      case x if x.isDigit ⇒ next (a)(SB ring x.asDigit)
       case x   ⇒ unique get c cata (next(a), unknown(c))
     }
   )
 
-  private def next (a: A)(s: STrans) = s(a) map (char, _)
+  private def next (a: A)(s: STrans) = s(a) map ((char, _))
 
   private def chars(p: Char ⇒ Boolean, y: Char ⇒ STrans, n: STrans) =
     FAState[A]((a,c) ⇒ c match {
-        case EOT        ⇒ n(a) map (dummy[A], _)
-        case x if p(x) ⇒ y(x)(a) map (char, _)
+        case EOT        ⇒ n(a) map ((dummy[A], _))
+        case x if p(x) ⇒ y(x)(a) map ((char, _))
         case x          ⇒ n(a) flatMap (char next (_, x))
       }
     )
 
   private lazy val ring = FAState[A]((a,c) ⇒ c match {
       case EOT ⇒ failRing
-      case x if(!x.isDigit) ⇒ failDigit(c)
-      case x ⇒ (chars(_.isDigit, SB ring (x, _), _ ⇒ failDigits), a).success
+      case x if !x.isDigit ⇒ failDigit(c)
+      case x ⇒ Validated.Valid(chars(_.isDigit, SB ring (x, _), _ ⇒ failDigits), a)
     }
   )
 
   private def accumBracket (s: String): FAS = FAState((a,c) ⇒ c match {
       case EOT ⇒ failFormat(s)
-      case ']' ⇒ parseBracket(s) flatMap (_(a) ∘ (char, _))
+      case ']' ⇒ parseBracket(s).map(b => b(a).map((char, _)))
       case c   ⇒ Success(accumBracket(s + c), a)
     }
   )
@@ -71,7 +72,7 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
     case atomRegex(m, s, stereo, h, c, id) ⇒ Element fromSymbolV s map {e ⇒
       val mass = Option(m) map (_.toInt)
       val arom = s.head.isLower
-      val st = (Option(stereo) flatMap Stereo.fromSymbol) | Stereo.Undefined
+      val st = (Option(stereo) flatMap Stereo.fromSymbol).getOrElse(Stereo.Undefined)
       val aClass = Option(id) cata (_.tail.toInt, 0)
 
       val hs =  h match {
