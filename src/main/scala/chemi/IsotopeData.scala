@@ -1,6 +1,6 @@
 package chemi
 
-import scala.util.Try
+import com.typesafe.scalalogging.LazyLogging
 
 case class IsotopeData (
   massNr: Int,
@@ -9,19 +9,17 @@ case class IsotopeData (
   exactMass: Option[Double] = None
 )
 
-
-object IsotopeData {
+object IsotopeData extends LazyLogging {
 
   def get(e: Element, massNr: Int): Option[IsotopeData] =
-    isotopes(e) get massNr
+    isotopes(e).find(_.massNr == massNr)
 
-  def isotopes(e: Element): Map[Int, IsotopeData] = Try {
-    data(e.atomicNr)
-  } match {
-    case e: IndexOutOfBoundsException ⇒ Map.empty
+  def isotopes(e: Element): List[IsotopeData] =
+    data.getOrElse(e.atomicNr, List.empty[IsotopeData])
+
+  //TODO
+  private val data: Map[Int, List[IsotopeData]] = {
+    Map.empty[Int, List[IsotopeData]]
   }
 
-  private val data: Array[Map[Int, IsotopeData]] = {
-    ???
-  }
 }

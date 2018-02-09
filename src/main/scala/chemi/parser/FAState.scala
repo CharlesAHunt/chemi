@@ -21,7 +21,7 @@ object FAState {
    * A dummy automaton state that always returns itself and the
    * unmodified product.
    */
-  def dummy[A]: FAState[A] = apply ((a, _) ⇒ Validated.valid((dummy, a)))
+  def dummy[A]: FAState[A] = apply ((a, _) ⇒ Validated.valid((dummy, a)))  //Validated[NonEmptyList[E],A]
 
   def apply[A](f: (A, Char) ⇒ FARes[A]): FAState[A] = new FAState[A] {
     def next(a: A, c: Char) = f(a, c)

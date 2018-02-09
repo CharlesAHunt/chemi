@@ -20,7 +20,7 @@ package object parser {
    * Transforms a SMILES string to a molecule
    */
   def smiles(s: String): ValRes[Molecule] =
-    SmilesParser.Default.parse(s).map(c => SmilesMol.toMolecule(c))
+    SmilesParser.Default.parse(s).map(SmilesMol.toMolecule)
 
   /**
    * Parses a single line, prepending the line number to all error messages.
@@ -39,5 +39,5 @@ package object parser {
    * `bulkParseSmiles(ss) exec x`
    */
   def bulkParseSmiles(ss: IndexedSeq[String]): ValIntState[IndexedSeq[Molecule]] =
-    ss.reverse traverse parseSmilesLine
+    ss.reverse.map(parseSmilesLine)
 }

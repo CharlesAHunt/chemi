@@ -2,7 +2,6 @@ package chemi
 
 import cats.data.NonEmptyList
 import cats.implicits._
-import cats.syntax._
 import cats.kernel.Eq
 import mouse.all._
 
@@ -19,7 +18,7 @@ sealed abstract class Element (val atomicNr: Int) {
   val exactMass: Option[Double] = data.flatMap(_.exactMass)
 
   lazy val isotopes: IndexedSeq[Isotope] =
-    (IsotopeData isotopes this).keySet.toIndexedSeq.sorted map (Isotope(this, _))
+    (IsotopeData isotopes this).toIndexedSeq.sortBy(_.massNr) map (iso => Isotope(this, iso.massNr))
 
   lazy val isotopeDist: IndexedSeq[(Isotope,Double)] = for {
     i ← isotopes
@@ -187,7 +186,7 @@ object Element {
   private val numberMap = values.toArray
 
   val symbolMap: Map[String,Element] =
-    values map (e ⇒ (e.symbol.toLowerCase, e)) toMap
+    values.map((e: Element) => (e.symbol.toLowerCase, e)).toMap
 
   implicit val ElementEqual: Eq[Element] = Eq.allEqual
 }
@@ -206,7 +205,8 @@ private[chemi] case class ElementData(
 
 private[chemi] object ElementData {
 
+  //TODO
   val dataMap: Map[Int,ElementData] = {
-    ???
+    Map()
   }
 }

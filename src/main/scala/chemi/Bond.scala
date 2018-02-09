@@ -4,13 +4,11 @@ import cats.Show
 import cats.kernel.Eq
 import enumeratum.values._
 
-import scalax.collection.edge.WUnDiEdge
-
 sealed abstract class Bond(val valence: Int, val symbol: String) extends IntEnumEntry
 
 case object Bond extends IntEnum[Bond] {
 
-  type ChemBond = WUnDiEdge[Int]
+  //type ChemBond = Edge[Int]
 
   case object Single extends Bond(1, "-")
   case object Double extends Bond(2, "=")

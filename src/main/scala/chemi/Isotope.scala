@@ -1,9 +1,13 @@
 package chemi
 
+import cats.implicits._
 import cats.Show
 import cats.kernel.Eq
 import mouse.all._
 
+/**
+  *
+  */
 sealed trait Isotope {
 
   def element: Element
@@ -19,23 +23,31 @@ sealed trait Isotope {
   override def toString: String =
     massNr.fold(element.toString)(_ + element.toString)
 
-  lazy val isotopeDist: Seq[(Isotope,Double)] = iData cata (
+  lazy val isotopeDist: Seq[(Isotope, Double)] = iData cata (
     _.abundance cata (a ⇒ Seq(this → a), Seq.empty),
     element.isotopeDist
   )
 
-  lazy val formulaDist: Seq[(Formula,Double)] =
-    isotopeDist map {case (i,d) ⇒ (Map(i → 1), d)}
+  lazy val formulaDist: Seq[(Formula, Double)] =
+    isotopeDist map { case (i,d) ⇒ (Map(i → 1), d)}
 }
 
 object Isotope {
 
+  class IsotopEq extends Eq[(Element, Option[Int])] {
+    override def eqv(x: (Element, Option[Int]), y: (Element, Option[Int])): Boolean = {
+      Eq.eqv(x._1.atomicNr, y._1.atomicNr) && Eq.eqv(x._2, y._2)
+    }
+  }
+
+  implicit val isotopEq = new IsotopEq
+
   def apply (e: Element): Isotope = elems(e.atomicNr)
 
-  def apply (e: Element, mn: Int): Isotope = Impl (e, Some(mn))
+  def apply (e: Element, massNumber: Int): Isotope = Impl (e, Option(massNumber))
 
-  def apply (e: Element, mn: Option[Int]): Isotope =
-    mn cata (apply(e, _), apply(e))
+  def apply (e: Element, massNumber: Option[Int]): Isotope =
+    massNumber cata (apply(e, _), apply(e))
 
   implicit val IsotopeEqual: Eq[Isotope] =
     Eq by (i ⇒ (i.element, i.massNr))
@@ -46,5 +58,5 @@ object Isotope {
     extends Isotope
 
   //Flyweight isotopes for all elements
-  private val elems = Element.values map (Impl(_, None)) toArray
+  private val elems = Element.values.map(a => Impl(a, None)).toArray
 }

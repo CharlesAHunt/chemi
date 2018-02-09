@@ -1,11 +1,6 @@
 package chemi
 
 import cats.implicits._
-import com.sun.org.apache.xpath.internal.NodeSet
-
-import scalax.collection.{AnySet, Graph}
-import scalax.collection.GraphPredef._
-import scalax.collection.GraphEdge._
 
 trait Molecules {
 
@@ -14,14 +9,16 @@ trait Molecules {
    * if the exact mass for one or more isotopes was not defined.
    */
   def exactMass (molecule: Molecule): Option[Double] = {
-    molecule.nodes.foldLeft(None)(_.exactMass)
+    if(molecule.nodes.forall(_.exactMass.isDefined))
+      molecule.nodes.map(_.exactMass).sum
+    else None
   }
 
   /**
    * Calculates the exact mass for a given formula. Returns None,
    * if the exact mass for one or more isotopes was not defined.
    */
-  def exactMass (f: Formula): Option[Double] =
+  def exactMassFormula (f: Formula): Option[Double] =
     (f.toList map (p => p._1.exactMass map (_ * p._2))).partition(_.isEmpty) match {
       case (Nil, masses) => Some(masses.flatten.sum)
       case _ => None
@@ -30,13 +27,13 @@ trait Molecules {
   /**
    * Calculates the total formula of a molecule
    */
-  def formula (molecule: Molecule): Formula = molecule foldMap (v => v.formula)
+  def formula (molecule: Molecule): Formula = molecule.nodes.groupBy(_.isotope).map(i => i._1 -> i._2.size)
 
   /**
    * Calculates the molar weight of a molecule. Returns None
    * if the mass for one or more isotopes was not defined.
    */
-  def mass (molecule: Molecule): Option[Double] = molecule foldMap (_.mass)
+  def mass (molecule: Molecule): Option[Double] = molecule foldLeft (_.mass)
 
 }
 

@@ -7,8 +7,6 @@ import chemi._
 import mouse.all._
 import chemi.{Bond, Element, Isotope, Stereo}
 import cats.implicits._
-import cats.syntax._
-
 
 /**
  * A data type representing information about atoms available

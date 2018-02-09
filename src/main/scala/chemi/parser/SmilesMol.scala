@@ -1,44 +1,44 @@
 package chemi.parser
 
+import SmilesMol.{Rings, AtomInfo}
 import cats.data.{NonEmptyList, Validated}
 import chemi._
 import mouse.all._
 import chemi.Bond.{Aromatic, Single}
+import cats.implicits._
+import quiver._
 
 import collection.immutable.{IndexedSeq => IxSq}
-import scalax.collection.GraphEdge.UnDiEdge
-import scalax.collection.immutable.Graph
 
 case class SmilesMol (
   atoms: IxSq[SmilesAtom],
-  bonds: List[UnDiEdge[Bond]],
+  bonds: List[Edge[Bond]],
   stack: List[SmilesMol.AtomInfo] = Nil,
   keep: Boolean = false,
   bond: Option[Bond] = None,
   dbStereo: Option[Char] = None,
   rings: SmilesMol.Rings = Map.empty
 ) {
-  import SmilesMol.{Rings, AtomInfo}
 
   def apply (i: Int): SmilesAtom = atoms(i)
 
-  def addAtom (a: SmilesAtom, aromatic: Boolean) = copy(
+  def addAtom(a: SmilesAtom, aromatic: Boolean): SmilesMol = copy(
     atoms = atoms :+ a,
     keep = false,
     stack = (keep, stack) match {
-      case (false, a::as) ⇒ (order, aromatic) :: as
+      case (false, _::as) ⇒ (order, aromatic) :: as
       case (_, as)        ⇒ (order, aromatic) :: as
     }
   )
 
-  def addBond (x: AtomInfo, y: AtomInfo, b: Option[Bond] = None) = {
+  def addBond(x: AtomInfo, y: AtomInfo, b: Option[Bond] = None) = {
     def bnd = bond orElse b match {
       case None if x._2 && y._2   ⇒ Aromatic
       case None                   ⇒ Single
       case Some(a)                ⇒ a
     }
 
-    copy (bonds = (UnDiEdge(x._1, y._1), bnd) :: bonds).noBond.success
+    copy (bonds = (Edge(x._1, y._1), bnd) :: bonds).noBond.success
   }
 
   def closeBranch: ValRes[SmilesMol] = stack match {
@@ -50,7 +50,7 @@ case class SmilesMol (
 
   def noBond = copy(bond = None)
 
-  def openBranch = copy(keep = true)
+  def openBranch: ValRes[SmilesMol] = Validated.Valid(copy(keep = true))
 
   def order = atoms.size
 }
@@ -71,21 +71,40 @@ object SmilesMol {
    */
   type Rings = Map[Int, RingInfo]
 
+
+  /*
+    def toMolecule (m: SmilesMol): ValRes[Molecule] = {
+    val graph = LGraph(m.atoms, m.bonds: _*)
+    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = {
+      def hs = SmilesAtom implicitHydrogens (graph edgesTo i, a.element)
+      def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
+
+      a.hydrogens cata (toAtom(_).success, hs map toAtom)
+    }
+
+    (graph mapI toAtom).sequence[ValRes,Atom]
+}
+   */
   /**
    * Transforms a SmilesMol to a Molecule by calculating
    * the implicit hydrogens for each atom. Aromaticity and
    * stereocenters are ignored by this function.
    */
   def toMolecule (m: SmilesMol): ValRes[Molecule] = {
-    val graph = Graph(m.atoms, m.bonds: _*)
-    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = {
-      def hs = SmilesAtom implicitHydrogens (graph edgesTo i, a.element)
+    // (m.atoms, m.bonds: _*) //TODO
+    val graph = m.atoms.foldLeft(empty[SmilesAtom, Int, Int]) { (g, atom) =>
+      g.addNode(LNode(atom, atom.charge))
+      g.addEdge(LEdge())
+    }
+
+    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = { //Validated[NonEmptyList[E],A]
+      def hs = SmilesAtom implicitHydrogens (graph.inEdges(i), a.element)
       def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
 
-      a.hydrogens cata (Validated.Valid(toAtom(_)), hs map toAtom)
+      a.hydrogens cata (a => Validated.Valid(toAtom(a)), hs map toAtom)
     }
     
-    (graph mapI toAtom).sequence[ValRes,Atom]
+    graph.labNodes.map2(Vector())(a => toAtom(a.vertex, a.label)).sequence[ValRes, Atom]
   }
 
   /**
