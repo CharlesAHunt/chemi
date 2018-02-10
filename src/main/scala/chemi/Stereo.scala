@@ -4,6 +4,7 @@ import cats.Show
 import cats.data.NonEmptyList
 import cats.kernel.Eq
 import cats.implicits._
+import scala.language.postfixOps
 
 /**
  * Stereo descriptors in SMILES strings

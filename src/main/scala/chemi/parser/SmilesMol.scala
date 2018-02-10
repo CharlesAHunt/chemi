@@ -1,6 +1,7 @@
 package chemi.parser
 
-import SmilesMol.{Rings, AtomInfo}
+import SmilesMol.{AtomInfo, Rings}
+import cats.data.Validated.Valid
 import cats.data.{NonEmptyList, Validated}
 import chemi._
 import mouse.all._
@@ -12,7 +13,7 @@ import collection.immutable.{IndexedSeq => IxSq}
 
 case class SmilesMol (
   atoms: IxSq[SmilesAtom],
-  bonds: List[Edge[Bond]],
+  bonds: List[LEdge[SmilesAtom, Bond]],
   stack: List[SmilesMol.AtomInfo] = Nil,
   keep: Boolean = false,
   bond: Option[Bond] = None,
@@ -38,11 +39,11 @@ case class SmilesMol (
       case Some(a)                ⇒ a
     }
 
-    copy (bonds = (Edge(x._1, y._1), bnd) :: bonds).noBond.success
+    copy (bonds = LEdge(x._1, y._1, bnd) :: bonds).noBond.success
   }
 
   def closeBranch: ValRes[SmilesMol] = stack match {
-    case a::as ⇒ Validated.Valid(copy(stack = as))
+    case _ :: as => Validated.Valid(copy(stack = as))
     case _ ⇒ Validated.invalid(NonEmptyList.one("No branch opened"))
   }
 
@@ -91,20 +92,18 @@ object SmilesMol {
    * stereocenters are ignored by this function.
    */
   def toMolecule (m: SmilesMol): ValRes[Molecule] = {
-    // (m.atoms, m.bonds: _*) //TODO
-    val graph = m.atoms.foldLeft(empty[SmilesAtom, Int, Int]) { (g, atom) =>
-      g.addNode(LNode(atom, atom.charge))
-      g.addEdge(LEdge())
-    }
+    val nodes = m.atoms.map(i => LNode(i, i.charge))
+    val edges: Seq[LEdge[SmilesAtom, Bond]] = m.bonds.map(i => LEdge(i.from, i.to, i.label))
+    val graph = mkGraph[SmilesAtom, Int, Bond](nodes, edges)
 
-    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = { //Validated[NonEmptyList[E],A]
-      def hs = SmilesAtom implicitHydrogens (graph.inEdges(i), a.element)
+    def toAtom (a: SmilesAtom): ValRes[Atom] = {
+      def hs = SmilesAtom implicitHydrogens (graph.inEdges(a).map(_.label).toList, a.element)
       def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
 
-      a.hydrogens cata (a => Validated.Valid(toAtom(a)), hs map toAtom)
+      a.hydrogens cata (a => Valid(toAtom(a)), hs map toAtom)
     }
     
-    graph.labNodes.map2(Vector())(a => toAtom(a.vertex, a.label)).sequence[ValRes, Atom]
+    graph.labNodes.map2(Vector())(a => toAtom(a.vertex)).sequence[ValRes, Atom]
   }
 
   /**
