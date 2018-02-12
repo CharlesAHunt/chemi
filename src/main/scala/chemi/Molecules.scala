@@ -10,7 +10,7 @@ trait Molecules {
    */
   def exactMass (molecule: Molecule): Option[Double] = {
     if(molecule.nodes.forall(_.exactMass.isDefined))
-      molecule.nodes.map(_.exactMass).sum
+      molecule.nodes.foldMap(_.exactMass)
     else None
   }
 
@@ -33,7 +33,11 @@ trait Molecules {
    * Calculates the molar weight of a molecule. Returns None
    * if the mass for one or more isotopes was not defined.
    */
-  def mass (molecule: Molecule): Option[Double] = molecule foldLeft (_.mass)
+  def mass (molecule: Molecule): Option[Double] = {
+    if(molecule.nodes.forall(_.mass.isDefined))
+      molecule.nodes.foldMap(_.mass)
+    else None
+  }
 
 }
 

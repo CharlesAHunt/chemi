@@ -72,20 +72,6 @@ object SmilesMol {
    */
   type Rings = Map[Int, RingInfo]
 
-
-  /*
-    def toMolecule (m: SmilesMol): ValRes[Molecule] = {
-    val graph = LGraph(m.atoms, m.bonds: _*)
-    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = {
-      def hs = SmilesAtom implicitHydrogens (graph edgesTo i, a.element)
-      def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
-
-      a.hydrogens cata (toAtom(_).success, hs map toAtom)
-    }
-
-    (graph mapI toAtom).sequence[ValRes,Atom]
-}
-   */
   /**
    * Transforms a SmilesMol to a Molecule by calculating
    * the implicit hydrogens for each atom. Aromaticity and
@@ -102,7 +88,8 @@ object SmilesMol {
 
       a.hydrogens cata (a => Valid(toAtom(a)), hs map toAtom)
     }
-    
+
+    //    (graph mapI toAtom).sequence[ValRes,Atom]
     graph.labNodes.map2(Vector())(a => toAtom(a.vertex)).sequence[ValRes, Atom]
   }
 
@@ -120,11 +107,9 @@ object SmilesMol {
     def setBond (b: Bond): STrans = mol => Validated.Valid(mol.copy(bond = Some(b)))
     def setDbStereo (c: Char): STrans = mol => Validated.Valid(mol.copy(dbStereo = Some(c)))
 
-    def addAtom (
-      i: Isotope, c: Int, h: Option[Int], a: Boolean, s: Stereo, ac: Int
-    ) = m ⇒ 
+    def addAtom (i: Isotope, c: Int, h: Option[Int], a: Boolean, s: Stereo, ac: Int) = m ⇒
       m.addAtom(SmilesAtom(i, c, h, s, ac), a) |>
-      (n ⇒ m.stack.headOption cata (n addBond (_, (m.order, a)), Validated.Valid(n)))
+      (n ⇒ m.stack.headOption cata (n addBond (_, (m.order, a)), Valid(n)))
 
     def ring (i: Int) = m ⇒ (m.rings get i, m.stack.headOption) match {
       case (Some((x, bo)), Some(y)) ⇒ m modRings (_ - i) addBond (x, y, bo)
