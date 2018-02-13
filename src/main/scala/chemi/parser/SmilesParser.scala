@@ -1,7 +1,6 @@
 package chemi.parser
 
 import FAState.dummy
-import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 import chemi.Bond.{Aromatic, Quadruple}
 import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S, Xx}
@@ -40,7 +39,7 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
   private lazy val ring = FAState[A]((a,c) ⇒ c match {
       case EOT ⇒ failRing
       case x if !x.isDigit ⇒ failDigit(c)
-      case x ⇒ Validated.Valid(chars(_.isDigit, SB ring (x, _), _ ⇒ failDigits), a)
+      case x ⇒ Valid((chars(_.isDigit, SB ring (x, _), _ ⇒ failDigits), a))
     }
   )
 

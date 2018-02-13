@@ -1,7 +1,7 @@
 package chemi.parser
 
 import SmilesMol.{AtomInfo, Rings}
-import cats.data.Validated.Valid
+import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, Validated}
 import chemi._
 import mouse.all._
@@ -13,7 +13,7 @@ import collection.immutable.{IndexedSeq => IxSq}
 
 case class SmilesMol (
   atoms: IxSq[SmilesAtom],
-  bonds: List[LEdge[SmilesAtom, Bond]],
+  bonds: List[LEdge[Int, Bond]],
   stack: List[SmilesMol.AtomInfo] = Nil,
   keep: Boolean = false,
   bond: Option[Bond] = None,
@@ -39,7 +39,7 @@ case class SmilesMol (
       case Some(a)                ⇒ a
     }
 
-    copy (bonds = LEdge(x._1, y._1, bnd) :: bonds).noBond.success
+    Valid(copy (bonds = LEdge(x._1, y._1, bnd) :: bonds).noBond)
   }
 
   def closeBranch: ValRes[SmilesMol] = stack match {
@@ -72,25 +72,40 @@ object SmilesMol {
    */
   type Rings = Map[Int, RingInfo]
 
+  /*
+   def toMolecule (m: SmilesMol): ValRes[Molecule] = {
+    val graph = LGraph(m.atoms, m.bonds: _*)
+    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = {
+      def hs = SmilesAtom implicitHydrogens (graph edgesTo i, a.element)
+      def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
+
+      a.hydrogens cata (toAtom(_).success, hs map toAtom)
+    }
+
+    (graph mapI toAtom).sequence[ValRes,Atom]
+}
+
+    override def mapI[B] (f: (V,Int) ⇒ B) = LgImpl (graph, vertices.zipWithIndex map f.tupled, eMap)
+   */
   /**
    * Transforms a SmilesMol to a Molecule by calculating
    * the implicit hydrogens for each atom. Aromaticity and
    * stereocenters are ignored by this function.
    */
   def toMolecule (m: SmilesMol): ValRes[Molecule] = {
-    val nodes = m.atoms.map(i => LNode(i, i.charge))
-    val edges: Seq[LEdge[SmilesAtom, Bond]] = m.bonds.map(i => LEdge(i.from, i.to, i.label))
-    val graph = mkGraph[SmilesAtom, Int, Bond](nodes, edges)
+    val nodes: Seq[LNode[Int, Int]] = m.atoms.map(i => LNode(i.charge, i.element.atomicNr))
+    val edges: Seq[LEdge[Int, Bond]] = m.bonds.map(i => LEdge(i.from, i.to, i.label))
+    val graph = mkGraph[Int, Int, Bond](nodes, edges)
 
-    def toAtom (a: SmilesAtom): ValRes[Atom] = {
-      def hs = SmilesAtom implicitHydrogens (graph.inEdges(a).map(_.label).toList, a.element)
+    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = {
+      def hs = SmilesAtom implicitHydrogens (graph.inEdges(i).map(_.label).toList, a.element)
       def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
 
       a.hydrogens cata (a => Valid(toAtom(a)), hs map toAtom)
     }
 
-    //    (graph mapI toAtom).sequence[ValRes,Atom]
-    graph.labNodes.map2(Vector())(a => toAtom(a.vertex)).sequence[ValRes, Atom]
+    //TODO: Fix this
+    graph.labNodes.map2(Vector())(a => toAtom(a.vertex, a.label)).sequence[ValRes, Atom]
   }
 
   /**
@@ -113,8 +128,8 @@ object SmilesMol {
 
     def ring (i: Int) = m ⇒ (m.rings get i, m.stack.headOption) match {
       case (Some((x, bo)), Some(y)) ⇒ m modRings (_ - i) addBond (x, y, bo)
-      case (None, Some(y)) ⇒ m.modRings (a => a + i -> (y, m.bond)).noBond.success
-      case (_, None) ⇒ Validated.Invalid(NonEmptyList.one("Atom stack empty when opening ring."))
+      case (None, Some(y)) ⇒ Valid(m.modRings(a => a + i -> (y, m.bond)).noBond)
+      case (_, None) ⇒ Invalid(NonEmptyList.one("Atom stack empty when opening ring."))
     }
   }
 }

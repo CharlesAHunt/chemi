@@ -3,6 +3,7 @@ package chemi
 import cats.Applicative
 import cats.data.State
 import cats.kernel.Monoid
+import cats.implicits._
 
 package object parser {
 
@@ -20,7 +21,7 @@ package object parser {
    * Transforms a SMILES string to a molecule
    */
   def smiles(s: String): ValRes[Molecule] =
-    SmilesParser.Default.parse(s).map(SmilesMol.toMolecule)
+    SmilesParser.Default.parse(s).andThen(SmilesMol.toMolecule)
 
   /**
    * Parses a single line, prepending the line number to all error messages.
@@ -38,6 +39,6 @@ package object parser {
    *
    * `bulkParseSmiles(ss) exec x`
    */
-  def bulkParseSmiles(ss: IndexedSeq[String]): ValIntState[IndexedSeq[Molecule]] =
-    ss.reverse.map(parseSmilesLine)
+  def bulkParseSmiles(ss: List[String]): ValIntState[List[Molecule]] =
+    ss.reverse.traverse(parseSmilesLine)
 }
