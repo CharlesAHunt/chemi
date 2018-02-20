@@ -1,7 +1,6 @@
-package chemi
+package chemi.core
 
-import collection.parallel.ForkJoinTaskSupport
-import parser._
+import scala.collection.parallel.ForkJoinTaskSupport
 
 object Main {
 

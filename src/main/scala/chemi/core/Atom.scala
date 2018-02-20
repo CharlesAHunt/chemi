@@ -1,4 +1,4 @@
-package chemi
+package chemi.core
 
 import Element.H
 import cats.{Eq, Show}

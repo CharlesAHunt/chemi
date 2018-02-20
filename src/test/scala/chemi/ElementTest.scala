@@ -1,6 +1,7 @@
 package chemi
 
 import chemi.chemf.IsotopeData
+import chemi.core.Element
 import org.scalacheck._
 
 object ElementTest extends Properties("Element") {

@@ -1,10 +1,10 @@
-package chemi.parser
+package chemi.core.parser
 
 import FAState.dummy
 import cats.data.Validated.{Invalid, Valid}
-import chemi.Bond.{Aromatic, Quadruple}
-import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S, Xx}
-import chemi._
+import chemi.core.Element.{B, Br, C, Cl, F, I, N, O, P, S, Xx}
+import chemi.core.Bond.{Aromatic, Quadruple}
+import chemi.core._
 import mouse.all._
 
 sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {

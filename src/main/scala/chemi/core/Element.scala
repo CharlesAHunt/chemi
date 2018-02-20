@@ -1,4 +1,4 @@
-package chemi
+package chemi.core
 
 import cats.data.NonEmptyList
 import cats.implicits._

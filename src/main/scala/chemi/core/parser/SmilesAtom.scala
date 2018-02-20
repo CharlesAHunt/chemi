@@ -1,12 +1,11 @@
-package chemi.parser
+package chemi.core.parser
 
 import cats.data.{NonEmptyList, Validated}
-import chemi.Bond.{Aromatic, Single}
-import chemi.Element.{B, Br, C, Cl, F, I, N, O, P, S}
-import chemi._
+import chemi.core.Element.{B, Br, C, Cl, F, I, N, O, P, S}
 import mouse.all._
-import chemi.{Bond, Element, Isotope, Stereo}
 import cats.implicits._
+import chemi.core.Bond.{Aromatic, Single}
+import chemi.core._
 
 /**
  * A data type representing information about atoms available

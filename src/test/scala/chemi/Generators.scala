@@ -1,6 +1,7 @@
 package chemi
 
-import org.scalacheck._, Prop._, Arbitrary.arbitrary
+import chemi.core.{Element, Isotope, Stereo}
+import org.scalacheck._
 
 trait Generators {
   implicit val ElementArbitrary = Arbitrary (Gen oneOf Element.values)

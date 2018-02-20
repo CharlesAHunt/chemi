@@ -1,8 +1,8 @@
-package chemi.parser
+package chemi.core.parser
 
 import cats.data.{NonEmptyList, Validated}
 import cats.data.Validated.{Invalid, Valid}
-import chemi.ValRes
+import chemi.core.ValRes
 
 /**
  * A state in a Finite State Automaton

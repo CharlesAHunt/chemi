@@ -1,8 +1,10 @@
+package chemi
+
 import cats.Bifunctor
 import cats.data.{NonEmptyList, Validated}
 import quiver.Graph
 
-package object chemi {
+package object core {
 
   type Formula = Map[Isotope, Int]
 
@@ -15,8 +17,9 @@ package object chemi {
   type DisRes[+A] = Either[String, A]
 
   /**
-   * Adjust all error messages (if any) in v by applying function f.
-   */
+    * Adjust all error messages (if any) in v by applying function f.
+    */
   def mapErr[E,F,A](v: ValNel[E,A])(f: E ⇒ F): ValNel[F, A] =
     Bifunctor[Validated].leftMap(v)(_ map f)
+
 }

@@ -1,8 +1,8 @@
 package chemi
 
 import org.scalacheck._
-import Prop._
 import cats.kernel.Eq
+import chemi.core.{Atom, Bond, Element, Isotope}
 
 object MoleculesTest extends Properties("Molecules") {
 

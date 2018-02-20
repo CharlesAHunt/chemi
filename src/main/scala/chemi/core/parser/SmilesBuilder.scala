@@ -1,7 +1,7 @@
-package chemi.parser
+package chemi.core.parser
 
-import chemi.Stereo.Undefined
-import chemi._
+import chemi.core.Stereo.Undefined
+import chemi.core._
 
 trait SmilesBuilder[A] {
   type STrans = A ⇒ ValRes[A]

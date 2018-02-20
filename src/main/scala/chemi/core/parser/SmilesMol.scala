@@ -1,12 +1,12 @@
-package chemi.parser
+package chemi.core.parser
 
 import SmilesMol.{AtomInfo, Rings}
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, Validated}
-import chemi._
 import mouse.all._
-import chemi.Bond.{Aromatic, Single}
 import cats.implicits._
+import chemi.core.Bond.{Aromatic, Single}
+import chemi.core._
 import quiver._
 
 import collection.immutable.{IndexedSeq => IxSq}

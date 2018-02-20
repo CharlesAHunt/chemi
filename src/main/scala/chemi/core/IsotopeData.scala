@@ -1,4 +1,4 @@
-package chemi
+package chemi.core
 
 import com.typesafe.scalalogging.LazyLogging
 
