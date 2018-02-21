@@ -2,7 +2,6 @@ package chemi.core
 
 import cats.Applicative
 import cats.data.State
-import cats.kernel.Monoid
 import cats.implicits._
 
 package object parser {
@@ -14,7 +13,7 @@ package object parser {
   //a bit of help for the compiler
   implicit val ValSApplicative = Applicative[IntState].compose[ValRes]
 
-  implicit def ValIntStateMonoid[A: Monoid] = Monoid.apply[ValIntState[A]]
+//  implicit def ValIntStateMonoid[A: Monoid] = Monoid.apply[ValIntState[A]]
 
   val EOT = '\u0004'
 

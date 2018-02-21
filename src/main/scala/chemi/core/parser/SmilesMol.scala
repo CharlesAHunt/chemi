@@ -128,7 +128,7 @@ object SmilesMol {
 
     def ring (i: Int) = m ⇒ (m.rings get i, m.stack.headOption) match {
       case (Some((x, bo)), Some(y)) ⇒ m modRings (_ - i) addBond (x, y, bo)
-      case (None, Some(y)) ⇒ Valid(m.modRings(a => a + i -> (y, m.bond)).noBond)
+      case (None, Some(y)) ⇒ Valid(m.modRings(_ + Tuple2(i, (y, m.bond))).noBond)
       case (_, None) ⇒ Invalid(NonEmptyList.one("Atom stack empty when opening ring."))
     }
   }
