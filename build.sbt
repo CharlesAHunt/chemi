@@ -61,12 +61,14 @@ libraryDependencies ++= {
   Seq(
     "org.typelevel" %% "cats-core" % "1.0.1",
     "org.typelevel" %% "mouse" % "0.16",
-    "org.scalatest" %% "scalatest" % "3.0.4" % "test",
     "com.beachape" %% "enumeratum" % "1.5.12",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
     "com.typesafe" % "config" % "1.3.2",
     "ch.qos.logback" % "logback-classic" % "1.2.3",
-    "io.verizon.quiver" %% "core" % "7.0.18"
+    "io.verizon.quiver" %% "core" % "7.0.18",
+
+    "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
+    "org.scalatest" %% "scalatest" % "3.0.4" % "test"
   )
 }
 
