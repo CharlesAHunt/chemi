@@ -72,46 +72,10 @@ object SmilesMol {
    */
   type Rings = Map[Int, RingInfo]
 
-  /*
-   def toMolecule (m: SmilesMol): ValRes[Molecule] = {
-    val graph = LGraph(m.atoms, m.bonds: _*)
-    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = {
-      def hs = SmilesAtom implicitHydrogens (graph edgesTo i, a.element)
-      def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
-
-      a.hydrogens cata (toAtom(_).success, hs map toAtom)
-    }
-
-    (graph mapI toAtom).sequence[ValRes,Atom]
-}
-
-    override def mapI[B] (f: (V,Int) ⇒ B) = LgImpl (graph, vertices.zipWithIndex map f.tupled, eMap)
-   */
-  /**
-   * Transforms a SmilesMol to a Molecule by calculating
-   * the implicit hydrogens for each atom. Aromaticity and
-   * stereocenters are ignored by this function.
-   */
-  def toMolecule (m: SmilesMol): ValRes[Molecule] = {
-    val nodes: Seq[LNode[Int, Int]] = m.atoms.map(i => LNode(i.charge, i.element.atomicNr))
-    val edges: Seq[LEdge[Int, Bond]] = m.bonds.map(i => LEdge(i.from, i.to, i.label))
-    val graph = mkGraph[Int, Int, Bond](nodes, edges)
-
-    def toAtom (a: SmilesAtom, i: Int): ValRes[Atom] = {
-      def hs = SmilesAtom implicitHydrogens (graph.inEdges(i).map(_.label).toList, a.element)
-      def toAtom (hs: Int) = Atom(a.isotope, a.charge, hs, a.stereo)
-
-      a.hydrogens cata (a => Valid(toAtom(a)), hs map toAtom)
-    }
-
-    //TODO: Fix this
-    graph.labNodes.map2(Vector())(a => toAtom(a.vertex, a.label)).sequence[ValRes, Atom]
-  }
-
   /**
    * SmilesBuilder implementation. Does not yet provide error messages
    * for all possibly invalid SMILES strings. For instance, unclosed
-   * braces, several successive braces, several successive bonds, 
+   * braces, several successive braces, several successive bonds,
    * and unclosed rings are all accepted silently.
    */
   implicit val SmilesMolBuilder = new SmilesBuilder[SmilesMol] {
@@ -128,8 +92,32 @@ object SmilesMol {
 
     def ring (i: Int) = m ⇒ (m.rings get i, m.stack.headOption) match {
       case (Some((x, bo)), Some(y)) ⇒ m modRings (_ - i) addBond (x, y, bo)
-      case (None, Some(y)) ⇒ Valid(m.modRings(a => a + i -> (y, m.bond)).noBond)
+      case (None, Some(y)) ⇒ Valid(m.modRings(_ + Tuple2(i, (y, m.bond))).noBond)
       case (_, None) ⇒ Invalid(NonEmptyList.one("Atom stack empty when opening ring."))
     }
+  }
+
+  /**
+   * Transforms a SmilesMol to a Molecule by calculating
+   * the implicit hydrogens for each atom. Aromaticity and
+   * stereocenters are ignored by this function.
+   */
+  def toMolecule (m: SmilesMol): ValRes[Molecule] = {
+    val nodes: Seq[LNode[Int, SmilesAtom]] = m.atoms.map(atom => LNode(atom.charge, atom))
+    val edges: Seq[LEdge[Int, Bond]] = m.bonds.map(bond => LEdge(bond.from, bond.to, bond.label))
+    val graph = mkGraph[Int, SmilesAtom, Bond](nodes, edges)
+
+    def toAtom (atom: SmilesAtom, i: Int): ValRes[Atom] = {
+      def hs = SmilesAtom implicitHydrogens (graph.inEdges(i).map(_.label).toList, atom.element)
+      def toAtom (hs: Int) = Atom(atom.isotope, atom.charge, hs, atom.stereo)
+
+      atom.hydrogens cata (a => Valid(toAtom(a)), hs map toAtom)
+    }
+
+    nodes.map(node => toAtom(node.label, node.vertex))
+    .toList
+    .sequence[ValRes, Atom]
+    .map(_.map(atom => LNode(atom.charge, atom)))
+    .map(nodes => mkGraph[Int, Atom, Bond](nodes, edges))
   }
 }

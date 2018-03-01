@@ -40,7 +40,7 @@ object FAState {
     def fsa (s: String, fas: FAState[A], a: A, pos: Int): ValRes[A] = s match {
       case "" ⇒ fas next (a, EOT) fold (fail(pos), fa => Validated.Valid(fa._2))
       case cs ⇒ fas next (a, cs.head) match {
-        case Validated.Invalid(ss)               ⇒ fail(pos)(ss)
+        case Validated.Invalid(ss)             ⇒ fail(pos)(ss)
         case Validated.Valid((newFas, newA))   ⇒ fsa(cs.tail, newFas, newA, pos + 1)
       }
     }

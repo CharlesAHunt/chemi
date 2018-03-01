@@ -9,8 +9,8 @@ trait Molecules {
    * if the exact mass for one or more isotopes was not defined.
    */
   def exactMass (molecule: Molecule): Option[Double] = {
-    if(molecule.nodes.forall(_.exactMass.isDefined))
-      molecule.nodes.foldMap(_.exactMass)
+    if(molecule.labNodes.forall(_.label.exactMass.isDefined))
+      molecule.labNodes.foldMap(_.label.exactMass)
     else None
   }
 
@@ -27,15 +27,15 @@ trait Molecules {
   /**
    * Calculates the total formula of a molecule
    */
-  def formula (molecule: Molecule): Formula = molecule.nodes.groupBy(_.isotope).map(i => i._1 -> i._2.size)
+  def formula (molecule: Molecule): Formula = molecule.labNodes.groupBy(_.label.isotope).map(i => i._1 -> i._2.size)
 
   /**
    * Calculates the molar weight of a molecule. Returns None
    * if the mass for one or more isotopes was not defined.
    */
   def mass (molecule: Molecule): Option[Double] = {
-    if(molecule.nodes.forall(_.mass.isDefined))
-      molecule.nodes.foldMap(_.mass)
+    if(molecule.labNodes.forall(_.label.mass.isDefined))
+      molecule.labNodes.foldMap(_.label.mass)
     else None
   }
 

@@ -1,76 +1,74 @@
 import scala.io.Source
 
-name := "chemi"
-
-organization := "com.cornfluence"
-
-description := "Computational Chemistry"
-
-version := "0.1.0"
-
-scalaVersion := "2.12.4"
-
-publishMavenStyle := true
-
-publishArtifact in Test := false
-
-pomIncludeRepository := { _ => false }
-
-scalacOptions ++= Seq("-feature")
-
-credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
-
-sonatypeProfileName := "com.cornfluence"
-
-useGpg := true
-
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
-
-pomExtra in Global := {
-  <url>http://www.cornfluence.com</url>
-    <scm>
-      <url>git@github.com:CharlesAHunt/chemi.git</url>
-      <connection>scm:git@github.com:CharlesAHunt/chemi.git</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>CharlesAHunt</id>
-        <name>Charles A Hunt</name>
-        <url>http://www.cornfluence.com</url>
-      </developer>
-    </developers>
-}
-
-licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+lazy val buildSettings = Seq(
+  name := "chemi",
+  organization := "com.cornfluence",
+  scalaVersion := "2.12.4",
+  description := "Computational Chemistry",
+  version := "0.1.0"
+)
 
 parallelExecution in Test := false
 
-resolvers ++= Seq(
-  "OSS"  at "http://oss.sonatype.org/content/repositories/releases"
+lazy val chemi = project.in(file("."))
+  .settings(moduleName := "root")
+  .settings(chemiSettings)
+  .settings(publishArtifact := false)
+  .settings(commonJvmSettings)
+  .aggregate(core, server)
+  .dependsOn(core, server)
+
+lazy val core = project.in(file("core"))
+  .settings(moduleName := "core")
+  .settings(libraryDependencies ++= deps)
+  .settings(chemiSettings ++ commonJvmSettings:_*)
+
+lazy val server = project.in(file("server"))
+  .settings(moduleName := "server")
+  .settings(libraryDependencies ++= deps)
+  .settings(chemiSettings ++ commonJvmSettings:_*)
+
+lazy val commonSettings = Seq(
+  scalacOptions ++= commonScalacOptions,
+  resolvers ++= commonResolvers,
+  scalacOptions in (Compile, doc) := (scalacOptions in (Compile, doc)).value.filter(_ != "-Xfatal-warnings"),
+  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
+) ++ prompt
+
+def disableTests = Seq(
+  test := {},
+  testQuick := {},
+  testOnly := {}
 )
 
-shellPrompt := { state => scala.Console.YELLOW + "[" + scala.Console.CYAN + Project.extract(state).currentProject.id + scala.Console.YELLOW + "]" + scala.Console.RED + " $ " + scala.Console.RESET }
+lazy val commonJvmSettings = Seq(
+  fork in Test := true,
+  cancelable in Global := true,
+  (scalacOptions in Test) ~= (_.filterNot(_ == "-Xfatal-warnings"))
+) ++ Seq(scalacOptions in Test ++= Seq("-Yrangepos"))
 
-libraryDependencies ++= {
+lazy val chemiSettings =
+  buildSettings ++ commonSettings ++ publishSettings
+
+lazy val publishSettings =
   Seq(
-    "org.typelevel" %% "cats-core" % "1.0.1",
-    "org.typelevel" %% "mouse" % "0.16",
-    "org.scalatest" %% "scalatest" % "3.0.4" % "test",
-    "com.beachape" %% "enumeratum" % "1.5.12",
-    "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
-    "com.typesafe" % "config" % "1.3.2",
-    "ch.qos.logback" % "logback-classic" % "1.2.3",
-    "io.verizon.quiver" %% "core" % "7.0.18"
-  )
-}
+  homepage := Some(url("https://github.com/CharlesAHunt/chemi")),
+  licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  scmInfo := Some(ScmInfo(url("https://github.com/CharlesAHunt/chemi"), "scm:git@github.com:CharlesAHunt/chemi.git")),
+  autoAPIMappings := true,
+  apiURL := Some(url("http://cornfluence.com/chemi/api/")),
+  pomExtra := (
+      <developers>
+        <developer>
+          <id>CharlesAHunt</id>
+          <name>Charles A Hunt</name>
+          <url>http://www.cornfluence.com</url>
+        </developer>
+      </developers>
+    )
+) ++ credentialSettings ++ sharedPublishSettings
 
-scalacOptions ++= Seq(
+lazy val commonScalacOptions = Seq(
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
   "-encoding", "utf-8",                // Specify character encoding used by source files.
   "-explaintypes",                     // Explain type errors in more detail.
@@ -116,4 +114,49 @@ scalacOptions ++= Seq(
   "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
   "-Ywarn-unused:privates",            // Warn if a private member is unused.
   "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
+)
+
+lazy val sharedPublishSettings = Seq(
+  // releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  publishMavenStyle := true,
+  publishArtifact in Test := false,
+  pomIncludeRepository := Function.const(false),
+  credentials := Seq(Credentials(Path.userHome / ".sbt" / ".credentials")),
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  }
+)
+
+lazy val credentialSettings = Seq(
+  // For Travis CI - see http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
+  credentials ++= (for {
+    username <- Option(System.getenv().get("SONATYPE_USERNAME"))
+    password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
+  } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
+)
+
+lazy val prompt = shellPrompt in ThisBuild := { state =>
+  scala.Console.YELLOW + "[" + scala.Console.CYAN + Project.extract(state).currentProject.id + scala.Console.YELLOW + "]" + scala.Console.RED + " $ " + scala.Console.RESET
+}
+
+lazy val commonResolvers = Seq(
+  Resolver.sonatypeRepo("releases")
+  , Resolver.typesafeRepo("releases")
+  , Resolver.sonatypeRepo("snapshots")
+)
+
+lazy val deps = Seq(
+  "org.typelevel" %% "cats-core" % "1.0.1",
+  "org.typelevel" %% "mouse" % "0.16",
+  "com.beachape" %% "enumeratum" % "1.5.12",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
+  "com.typesafe" % "config" % "1.3.2",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "io.verizon.quiver" %% "core" % "7.0.18",
+  "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
+  "org.scalatest" %% "scalatest" % "3.0.4" % "test"
 )

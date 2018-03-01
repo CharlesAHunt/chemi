@@ -4,7 +4,9 @@ import cats.Show
 import cats.kernel.Eq
 import enumeratum.values._
 
-sealed abstract class Bond(val valence: Int, val symbol: String) extends IntEnumEntry
+sealed abstract class Bond(val value: Int, val symbol: String) extends IntEnumEntry {
+  def valence = value
+}
 
 case object Bond extends IntEnum[Bond] {
 
@@ -16,7 +18,7 @@ case object Bond extends IntEnum[Bond] {
   case object Quadruple extends Bond(4, "$")
   case object Aromatic extends Bond(0, ":")
 
-  //val values = findValues
+  val values = findValues
 
   implicit val BondEqual = Eq.allEqual[Bond]
 

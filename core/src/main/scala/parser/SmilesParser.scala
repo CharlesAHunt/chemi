@@ -32,7 +32,7 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
     FAState[A]((a,c) ⇒ c match {
         case EOT        ⇒ n(a) map ((dummy[A], _))
         case x if p(x)  ⇒ y(x)(a) map ((char, _))
-        case x          ⇒ n(a) map (char next (_, x))
+        case x          ⇒ n(a) andThen (char next (_, x))
       }
     )
 
@@ -45,7 +45,7 @@ sealed abstract class SmilesParser[A](implicit SB: SmilesBuilder[A]) {
 
   private def accumBracket (s: String): FAS = FAState((a,c) ⇒ c match {
       case EOT ⇒ failFormat(s)
-      case ']' ⇒ parseBracket(s).map(b => b(a).map((char, _)))
+      case ']' ⇒ parseBracket(s) andThen (b => b(a).map((char, _)))
       case c   ⇒ Valid((accumBracket(s + c), a))
     }
   )

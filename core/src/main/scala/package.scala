@@ -8,7 +8,7 @@ package object core {
 
   type Formula = Map[Isotope, Int]
 
-  type Molecule = Graph[Atom, Int, Int]
+  type Molecule = Graph[Int, Atom, Bond]
 
   type ValNel[+E,+A] = Validated[NonEmptyList[E], A]
 

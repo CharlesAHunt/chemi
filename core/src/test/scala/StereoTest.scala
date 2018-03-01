@@ -1,6 +1,7 @@
 package chemi
 
-import org.scalacheck._, Prop._
+import chemi.core.Stereo
+import org.scalacheck._
 
 object StereoTest extends Properties("Stereo") {
   property("fromSymbol") = 
