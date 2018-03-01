@@ -19,12 +19,20 @@ lazy val chemi = project.in(file("."))
   .dependsOn(core, server)
 
 lazy val core = project.in(file("core"))
+<<<<<<< HEAD
   .settings(moduleName := "core")
+=======
+  .settings(moduleName := "chemi-core")
+>>>>>>> 66d0cb4846a6273594619eca5bea81dd58c0c844
   .settings(libraryDependencies ++= deps)
   .settings(chemiSettings ++ commonJvmSettings:_*)
 
 lazy val server = project.in(file("server"))
+<<<<<<< HEAD
   .settings(moduleName := "server")
+=======
+  .settings(moduleName := "chemi-server")
+>>>>>>> 66d0cb4846a6273594619eca5bea81dd58c0c844
   .settings(libraryDependencies ++= deps)
   .settings(chemiSettings ++ commonJvmSettings:_*)
 
