@@ -1,27 +1,28 @@
 package chemi
 
-import chemi.core.Element
+import chemi.core.{Element, IsotopeData}
 import org.scalacheck._
+import cats.implicits._
 
 object ElementTest extends Properties("Element") {
   
-  property("orderNr") = Element.values.∀ (e ⇒ (Element fromNr e.atomicNr) ≟ e) 
-  
-  property("symbol") = Element.values.∀ (e ⇒ (Element fromSymbol e.symbol) ≟ e.some) 
-  
+  property("orderNr") = Element.values forall (e ⇒ (Element fromNumber e.atomicNr) == e)
+
+  property("symbol") = Element.values forall (e ⇒ (Element fromSymbol e.symbol) == e.some)
+
   property("listOrder") =
-    Element.values.zipWithIndex.∀ (p ⇒ p._1.atomicNr ≟ p._2) 
+    Element.values.zipWithIndex.forall (p ⇒ p._1.atomicNr == p._2)
 
   property("isotopes") =
-    Element.values ∀ (e ⇒ e.isotopes.size ≟ IsotopeData.isotopes(e).size)
+    Element.values forall (e ⇒ e.isotopes.size == IsotopeData.isotopes(e).size)
 
   property("isotopes") =
-    Element.values ∀ (e ⇒ e.isotopes ∀ (_.element ≟ e))
+    Element.values forall (e ⇒ e.isotopes forall (_.element == e))
 
   property("massDist") =
-    Element.values ∀ (e ⇒ 
-      e.isotopeDist ∀ (
-        p ⇒ (p._1.element ≟ e) && p._2 <= 1.0
+    Element.values forall (e ⇒
+      e.isotopeDist forall (
+        p ⇒ (p._1.element == e) && p._2 <= 1.0
       )
     )
 

@@ -1,6 +1,6 @@
 package chemi
 
-import chemi.core.{Element, Isotope, Stereo}
+import chemi.core._
 import org.scalacheck._
 
 trait Generators {

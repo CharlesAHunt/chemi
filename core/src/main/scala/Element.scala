@@ -34,7 +34,7 @@ sealed abstract class Element (val atomicNr: Int) {
 
   val radiusVdw: Option[Double] = data flatMap (_.rVdw)
 
-  final def symbol = toString
+  final def symbol: String = toString
 }
 
 object Element {
