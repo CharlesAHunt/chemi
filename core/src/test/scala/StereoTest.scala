@@ -2,6 +2,7 @@ package chemi
 
 import chemi.core.Stereo
 import org.scalacheck._
+import cats.implicits._
 
 object StereoTest extends Properties("Stereo") {
   property("fromSymbol") = 

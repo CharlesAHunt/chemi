@@ -5,7 +5,7 @@ import cats.kernel.Eq
 import enumeratum.values._
 
 sealed abstract class Bond(val value: Int, val symbol: String) extends IntEnumEntry {
-  def valence = value
+  def valence: Int = value
 }
 
 case object Bond extends IntEnum[Bond] {

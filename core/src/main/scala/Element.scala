@@ -174,7 +174,7 @@ object Element {
     Cn, Uut, Fl, Uup, Lv, Uus, Uuo
   ) sortBy (_.atomicNr)
 
-  def fromNumber (i: Int) = numberMap(i)
+  def fromNumber (i: Int): Element = numberMap(i)
 
   def fromSymbol (s: String): Option[Element] = symbolMap get s.toLowerCase
 
@@ -191,7 +191,7 @@ object Element {
   implicit val ElementEqual: Eq[Element] = Eq.allEqual
 }
 
-private[chemi] case class ElementData(
+private case class ElementData(
   id: Int,
   name: String = "",
   mass: Option[Double] = None,
@@ -203,7 +203,7 @@ private[chemi] case class ElementData(
   rVdw: Option[Double] = None
 )
 
-private[chemi] object ElementData {
+private object ElementData {
 
   //TODO
   val dataMap: Map[Int,ElementData] = {

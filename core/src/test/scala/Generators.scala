@@ -2,6 +2,7 @@ package chemi
 
 import chemi.core._
 import org.scalacheck._
+import Arbitrary.arbitrary
 
 trait Generators {
   implicit val ElementArbitrary = Arbitrary (Gen oneOf Element.values)
@@ -10,13 +11,15 @@ trait Generators {
 
   implicit val StereoArbitrary = Arbitrary (Gen oneOf Stereo.values)
 
-  implicit val IsotopeArbitrary = ElementArbitrary ∘ (Isotope.apply (_))
+  implicit val IsotopeArbitrary = Arbitrary[Isotope](ElementArbitrary.arbitrary.map(Isotope.apply))
 
   implicit val AtomArbitrary = Arbitrary (
-    arbitrary[Isotope] ⊛
-    Gen.choose(-4,4) ⊛
-    Gen.choose(0, 4) ⊛ 
-    arbitrary[Stereo] apply Atom.apply
+    for {
+      a <- arbitrary[Isotope]
+      b <- Gen.choose(-4,4)
+      c <- Gen.choose(0, 4)
+      d <- arbitrary[Stereo]
+    } yield Atom.apply(a,b,c,d)
   )
     
 }

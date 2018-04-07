@@ -31,18 +31,18 @@ case class Atom (
     (isotope.mass, H.mass) mapN (_ + hydrogens * _)
 
   override def toString: String = {
-    def formatCharge = charge match {
+    def formatCharge: String = charge match {
       case 0           ⇒ ""
       case x if x < 0  ⇒ "(%d)" format x
       case x           ⇒ "(+%d)" format x
     }
 
-    def formatStereo = stereo match {
+    def formatStereo: String = stereo match {
       case Stereo.Undefined ⇒ ""
       case x                ⇒ "(%s)" format x.symbol
     }
 
-    def formatHs = hydrogens match {
+    def formatHs: String = hydrogens match {
       case 0 ⇒ ""
       case 1 ⇒ "H"
       case x ⇒ "H" + x
@@ -55,7 +55,7 @@ case class Atom (
 object Atom {
   def fromElement(e: Element): Atom = fromIsotope (Isotope(e))
 
-  def fromIsotope (i: Isotope) = Atom (i, 0, 0, Stereo.Undefined)
+  def fromIsotope (isotope: Isotope) = Atom (isotope, 0, 0, Stereo.Undefined)
 
   implicit val AtomEqual: Eq[Atom] =
     Eq.by(a ⇒ (a.isotope, a.charge, a.hydrogens))

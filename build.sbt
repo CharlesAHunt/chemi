@@ -3,7 +3,7 @@ import scala.io.Source
 lazy val buildSettings = Seq(
   name := "chemi",
   organization := "com.cornfluence",
-  scalaVersion := "2.12.4",
+  scalaVersion := "2.12.5",
   description := "Computational Chemistry",
   version := "0.1.0"
 )
@@ -132,7 +132,6 @@ lazy val sharedPublishSettings = Seq(
 )
 
 lazy val credentialSettings = Seq(
-  // For Travis CI - see http://www.cakesolutions.net/teamblogs/publishing-artefacts-to-oss-sonatype-nexus-using-sbt-and-travis-ci
   credentials ++= (for {
     username <- Option(System.getenv().get("SONATYPE_USERNAME"))
     password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
